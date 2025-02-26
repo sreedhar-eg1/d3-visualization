@@ -14,6 +14,7 @@ import { Chart7Component } from './charts/chart7/chart7.component';
 import { Chart8Component } from './charts/chart8/chart8.component';
 import { TimelineTooltipComponent } from './components/timeline-tooltip/timeline-tooltip.component';
 import { PlaySliderComponent } from './components/play-slider/play-slider.component';
+import { SwarnBeeComponent } from './charts/chart9/swarn-bee/swarn-bee.component';
 
 @NgModule({
   declarations: [
@@ -28,6 +29,7 @@ import { PlaySliderComponent } from './components/play-slider/play-slider.compon
     Chart8Component,
     TimelineTooltipComponent,
     PlaySliderComponent,
+    SwarnBeeComponent,
   ],
   imports: [
     BrowserModule,
