@@ -1,0 +1,9 @@
+::ng-deep .chart-container .label {
+    text-anchor: middle;
+    dominant-baseline: central;
+    font-size: 12px;
+}
+
+::ng-deep .chart-container .title {
+    font-weight: bold;
+}

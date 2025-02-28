@@ -1,17 +1,24 @@
 import { combineLatest, map, Observable, Subscription } from 'rxjs';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ApiService } from './services/api.service';
-import { IPieConfig, IPieData, IGroupStackData, IGroupStackDataElem, IGroupStackConfig } from './interfaces/chart.interfaces';
+import {
+  IPieConfig,
+  IPieData,
+  IGroupStackData,
+  IGroupStackDataElem,
+  IGroupStackConfig,
+} from './interfaces/chart.interfaces';
 import { PieHelper } from './helpers/pie.helper';
 
 import * as d3 from 'd3';
 import { StackHelper } from './helpers/stack.helper';
 import { MapHelper } from './helpers/map.helper';
+import { SwarmHelper } from './helpers/swarm.helper';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss']
+  styleUrls: ['./app.component.scss'],
 })
 export class AppComponent implements OnInit, OnDestroy {
   title = 'DashboardOne';
@@ -19,7 +26,7 @@ export class AppComponent implements OnInit, OnDestroy {
   subscrtiptions: Subscription[] = [];
 
   data1 = [125, 100, 50, 75, 200, 300, 100];
-  data2$: Observable<any[]> = new Observable();;
+  data2$: Observable<any[]> = new Observable();
 
   iris$: Observable<any> = new Observable();
 
@@ -30,7 +37,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
   pieData: IPieData = {
     title: '',
-    data: []
+    data: [],
   };
 
   pieConfig = {} as any;
@@ -46,31 +53,37 @@ export class AppComponent implements OnInit, OnDestroy {
 
   population = [];
 
-  stackedData: IGroupStackData = {} as any ;
+  stackedData: IGroupStackData = {} as any;
 
   stackOptions = [
     {
       label: 'Year (grouped)',
-      value: 'year/gender/age_group/'
-    }, {
+      value: 'year/gender/age_group/',
+    },
+    {
       label: 'Year (no group - stacked)',
-      value: 'year//age_group/'
-    }, {
+      value: 'year//age_group/',
+    },
+    {
       label: 'Year (grouped - no stack)',
-      value: 'year/age_group//'
-    }, {
+      value: 'year/age_group//',
+    },
+    {
       label: 'Year (no group - no stack)',
-      value: 'year///'
-    }, {
+      value: 'year///',
+    },
+    {
       label: 'Countries 2012',
-      value: 'country/gender/age_group/2012'
-    }, {
+      value: 'country/gender/age_group/2012',
+    },
+    {
       label: 'Country 2006',
-      value: 'country/gender/age_group/2006'
-    }, {
+      value: 'country/gender/age_group/2006',
+    },
+    {
       label: 'Country (no group - stacked)',
-      value: 'country//age_group/2012'
-    }
+      value: 'country//age_group/2012',
+    },
   ];
 
   // map observables
@@ -79,6 +92,11 @@ export class AppComponent implements OnInit, OnDestroy {
   countrycodes$: Observable<any> = new Observable();
 
   covidMap = new MapHelper();
+
+  //swarm observable
+  demographic$: Observable<any> = new Observable();
+
+  swarmHelper = new SwarmHelper();
 
   constructor(private api: ApiService) {}
 
@@ -97,6 +115,8 @@ export class AppComponent implements OnInit, OnDestroy {
 
     subs = this.browser$.subscribe((data) => {
       this.browser = data;
+      console.log(this.browser);
+      
       this.setPieData('now');
     });
 
@@ -104,20 +124,18 @@ export class AppComponent implements OnInit, OnDestroy {
 
     this.population$ = this.api.getParsedData('assets/population.csv');
 
-    subs = this.population$.subscribe(data => {
+    subs = this.population$.subscribe((data) => {
       this.population = data;
       this.setStackedData('year/gender/age_group/');
     });
 
     this.subscrtiptions.push(subs);
 
-    setTimeout(
-      () => {
-        console.log();
+    setTimeout(() => {
+      console.log();
 
-        this.data1 = [...this.data1, 600]; }
-      , 5000
-    );
+      this.data1 = [...this.data1, 600];
+    }, 5000);
 
     // map subscriptions
     this.geoCountries$ = this.api.getCountriesGeoData();
@@ -126,13 +144,31 @@ export class AppComponent implements OnInit, OnDestroy {
 
     this.countrycodes$ = this.api.getCountryCodes();
 
-    subs = combineLatest([this.covidByCountry$, this.countrycodes$])
-    .subscribe(([data, codes]) => {
-      // set the map data
-      this.covidMap.setData(data, codes);
-    });
-    
+    subs = combineLatest([this.covidByCountry$, this.countrycodes$]).subscribe(
+      ([data, codes]) => {
+        // set the map data
+        this.covidMap.setData(data, codes);
+      }
+    );
+
     this.subscrtiptions.push(subs);
+
+    // swarm subscription
+    this.demographic$ = this.api.getDemographics();
+    subs = this.demographic$.subscribe((data) => {
+      // convert the data
+      this.swarmHelper.setData(
+        data,
+        'Demographics by country and year',
+        'year',
+        'code',
+        'name',
+        'median_age',
+        'continent',
+        'median age (years)',
+        1
+      );
+    });
   }
 
   ngOnDestroy(): void {
@@ -154,7 +190,14 @@ export class AppComponent implements OnInit, OnDestroy {
 
   setPieData(event: any) {
     const valueAttr = typeof event === 'string' ? event : event.target.value;
-    this.pieData = PieHelper.convert(this.browser, "Browser market share", valueAttr, 'name', 'name');
+
+    this.pieData = PieHelper.convert(
+      this.browser,
+      'Browser market share',
+      valueAttr,
+      'name',
+      'name'
+    );
   }
 
   setStackedData(event: any) {
@@ -162,18 +205,37 @@ export class AppComponent implements OnInit, OnDestroy {
 
     const [domain, group, stack, year] = valueAttr.split('/');
 
-    const population = year == '' ? this.population : this.population.filter((d: any) => d.year === year);
+    const population =
+      year == ''
+        ? this.population
+        : this.population.filter((d: any) => d.year === year);
 
-    const data = StackHelper.SetStacks(population, domain, group, stack, 'value', (val) => val/1e6);
+    const data = StackHelper.SetStacks(
+      population,
+      domain,
+      group,
+      stack,
+      'value',
+      (val) => val / 1e6
+    );
 
-      this.stackedData = {
-        title: ' Population by year, gender and age group (in millions)',
-        yLabel: 'Population (millions)',
-        unit: 'million',
-        data,
-        stackOrder: ['<3', '4', '5-9', '10-14', '15-19', '20-24', '25-29', '30-34', '35-39', '>=40']
-      };
-
+    this.stackedData = {
+      title: ' Population by year, gender and age group (in millions)',
+      yLabel: 'Population (millions)',
+      unit: 'million',
+      data,
+      stackOrder: [
+        '<3',
+        '4',
+        '5-9',
+        '10-14',
+        '15-19',
+        '20-24',
+        '25-29',
+        '30-34',
+        '35-39',
+        '>=40',
+      ],
+    };
   }
-
 }

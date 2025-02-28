@@ -66,4 +66,9 @@ export class ApiService {
     const url = 'assets/mapcountries.json';
     return this.getJson(url);
   }
+
+  getDemographics(): Observable<any> {
+    const url = 'assets/demographicsByYearAndCountry.csv';
+    return this.getParsedData(url);
+  }
 }

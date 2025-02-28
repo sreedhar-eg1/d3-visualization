@@ -1,9 +1,14 @@
+import { ITooltipConfig } from "./tooltip.interfaces";
 
 export interface IChartMargins {
   top: number;
   right: number;
   bottom: number;
   left: number;
+}
+
+export interface IBaseConfig {
+  margins: IChartMargins
 }
 
 export interface IPieDataElements {
@@ -63,45 +68,11 @@ export interface IGroupStackConfig {
   };
 }
 
-export interface IGroupStackRectData extends IGroupStackDataElem{
+export interface IGroupStackRectData extends IGroupStackDataElem {
   min: number;
   max: number;
   key: string;
   index: number;
-}
-
-export interface ITooltipData {
-  title: string;
-  color: string;
-  key: string;
-  value: number | string;
-}
-
-export interface ITooltipConfig {
-  background: {
-    xPadding: number;
-    yPadding: number;
-    color: string;
-    opacity: number;
-    stroke: string;
-    strokeWidth: number;
-    rx: number;
-    ry: number;
-  };
-  labels: {
-    symbolSize: number;
-    fontSize: number;
-    height: number;
-    textSeparator: number;
-  };
-  symbol: {
-    width: number;
-    height: number;
-  };
-  offset: {
-    x: number;
-    y: number;
-  };
 }
 
 export interface IMapDataElement {
@@ -132,7 +103,7 @@ export interface IMapConfig {
     };
     highlighted: {
       stroke: string;
-    }
+    };
   };
   faded: {
     opacity: number;
@@ -185,7 +156,7 @@ export interface ITimelineConfig {
   area: {
     fill: string;
     opacity: number;
-  },
+  };
   axis: {
     color: string;
   };
@@ -206,4 +177,28 @@ export interface IPlaySlider {
   max: number;
   step: number;
   speed: number;
+}
+
+export interface ISwarmDataElement {
+  id: string | number;
+  label: string;
+  value: number;
+  category: string | number;
+  group: string | number;
+}
+
+export interface ISwarmData {
+  title: string;
+  unit: string;
+  data: ISwarmDataElement[];
+}
+
+export interface ISimulatedSwarmDataElement extends ISwarmDataElement {
+  cx: number;
+  cy: number;
+  index: number;
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
 }
